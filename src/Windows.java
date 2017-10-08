@@ -14,6 +14,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -55,7 +56,7 @@ public class Windows extends Application{
 
         borderPane.setLeft(getRadioPane());
         borderPane.setRight(getAvailableList());
-
+        borderPane.setBottom(getPane());
 
         return borderPane;
     }
@@ -150,7 +151,27 @@ public class Windows extends Application{
 
 
 
-    private
+    private Pane getPane(){
+        Pane pane = new Pane();
+
+        TableView<Game> gameTable = new TableView<>();
+
+        ObservableList<Game> items = FXCollections.observableArrayList();
+        items.add(new Game("SW001","ref1"));
+        items.add(new Game("SW002","ref2"));
+        items.add(new Game("SW003","ref3"));
+
+        TableColumn<Game, String> games = new TableColumn<>("ID");
+        games.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<Game, String> referee = new TableColumn<>("Referee");
+        referee.setCellValueFactory(new PropertyValueFactory<>("referee"));
+
+        gameTable.setItems(items);
+        gameTable.getColumns().addAll(games, referee);
+        pane.getChildren().add(gameTable);
+        return pane;
+    }
 
 
 }
