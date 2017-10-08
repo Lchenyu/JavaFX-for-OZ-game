@@ -17,7 +17,7 @@ public class AthleteInfoTab {
         idColumn.setCellValueFactory(new PropertyValueFactory<>("athleteID"));
 
         TableColumn<Athlete, String> nameColumn = new TableColumn<>("Name");
-        nameColumn.setMinWidth(100);
+        nameColumn.setMinWidth(200);
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Athlete, String> typeColumn = new TableColumn<>("Type");
