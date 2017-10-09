@@ -1,19 +1,15 @@
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -56,7 +52,7 @@ public class Windows extends Application{
 
         borderPane.setLeft(getRadioPane());
         borderPane.setRight(getAvailableList());
-        borderPane.setBottom(getPane());
+        borderPane.setBottom(getBottomPane());
 
         return borderPane;
     }
@@ -72,13 +68,13 @@ public class Windows extends Application{
 
 
 
-    private VBox getRadioPane(){
+    private GridPane getRadioPane(){
         /*
         for tab 1
         radio button for select game type
          */
         VBox vBox = new VBox(20);
-        //vBox.setAlignment(Pos.BOTTOM_CENTER);
+        vBox.setAlignment(Pos.CENTER_LEFT);
         Label label = new Label("Game Type: ");
         RadioButton radio1 = new RadioButton("Swimming");
         RadioButton radio2 = new RadioButton("Running");
@@ -91,7 +87,20 @@ public class Windows extends Application{
 
         vBox.getChildren().addAll(label, radio1, radio2, radio3);
 
-        return vBox;
+
+        GridPane gridPane = new GridPane();
+       // gridPane.setAlignment(Pos.CENTER_LEFT);
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
+        Button startBtn = new Button("Start Game");
+
+        gridPane.add(vBox,0 , 0);
+        gridPane.add(startBtn, 0, 1);
+
+        gridPane.setPadding(new Insets(10,10,10,50));
+
+        return gridPane;
     }
 
     private VBox getAvailableList(){
@@ -101,7 +110,7 @@ public class Windows extends Application{
          */
 
         VBox vBox = new VBox();
-
+        vBox.setPadding(new Insets(10, 30, 10, 10));
         vBox.getChildren().add(getTable());
 
         return vBox;
@@ -109,6 +118,9 @@ public class Windows extends Application{
 
 
     private TableView<Athlete> getTable(){
+        /*
+        for tab 1 get available athletes table
+         */
         TableView<Athlete> table = new TableView<>();
         ObservableList<TableColumn<Athlete, ?>> columns = table.getColumns();
 
@@ -146,13 +158,26 @@ public class Windows extends Application{
 
         table.setItems(AthleteInfoTab.getAthlete());
 
+
         return table;
     }
 
 
 
-    private Pane getPane(){
-        Pane pane = new Pane();
+    private GridPane getBottomPane(){
+        /*
+        for tab 1, at bottom of pane and show the current game results
+         */
+        GridPane pane = new GridPane();
+        pane.setAlignment(Pos.CENTER);
+        pane.setPadding(new Insets(10,10,10,10));
+        pane.setVgap(10);
+        pane.setHgap(10);
+
+        Label gameIDLabel = new Label("Game ID: ");
+        Label id = new Label();
+        Label refereeLabel = new Label("Referee: ");
+        Label reLabel = new Label();
 
         TableView<Game> gameTable = new TableView<>();
 
@@ -169,7 +194,12 @@ public class Windows extends Application{
 
         gameTable.setItems(items);
         gameTable.getColumns().addAll(games, referee);
-        pane.getChildren().add(gameTable);
+
+        pane.add(gameIDLabel,0,0);
+        pane.add(id, 1,0);
+        pane.add(refereeLabel, 2, 0);
+        pane.add(reLabel, 3, 0);
+        pane.add(gameTable,0,1, 3,1);
         return pane;
     }
 
