@@ -10,12 +10,15 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
 public class Windows extends Application{
+
+    private boolean swim = false, run = false, cycle = false;
+
+
 
     public static void main(String[] args){
         launch();
@@ -36,7 +39,7 @@ public class Windows extends Application{
         layout.getSelectionModel().select(tab1); // set default tab showing
 
         tab1.setContent(getBorderPane());
-        tab3.setContent(getVpane());
+        tab3.setContent(getAthletesAllPane());
 
         Scene scene = new Scene(layout, 780, 600);
         primaryStage.setTitle("Ozlympic Game");
@@ -57,7 +60,7 @@ public class Windows extends Application{
         return borderPane;
     }
 
-    private VBox getVpane(){
+    private VBox getAthletesAllPane(){
         /*
         contents for tab 3
          */
@@ -77,8 +80,11 @@ public class Windows extends Application{
         vBox.setAlignment(Pos.CENTER_LEFT);
         Label label = new Label("Game Type: ");
         RadioButton radio1 = new RadioButton("Swimming");
+        radio1.setOnAction(e -> swim = true);
         RadioButton radio2 = new RadioButton("Running");
+        radio2.setOnAction(e -> run = true);
         RadioButton radio3 = new RadioButton("Cycling");
+        radio3.setOnAction(e -> cycle = true);
 
         ToggleGroup group = new ToggleGroup();
         radio1.setToggleGroup(group);
@@ -86,7 +92,6 @@ public class Windows extends Application{
         radio3.setToggleGroup(group);
 
         vBox.getChildren().addAll(label, radio1, radio2, radio3);
-
 
         GridPane gridPane = new GridPane();
        // gridPane.setAlignment(Pos.CENTER_LEFT);
@@ -108,7 +113,6 @@ public class Windows extends Application{
         for tab 1
         show the available athletes list by different game type
          */
-
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(10, 30, 10, 10));
         vBox.getChildren().add(getTable());
@@ -140,7 +144,6 @@ public class Windows extends Application{
         pointColumn.setMinWidth(100);
         pointColumn.setCellValueFactory(new PropertyValueFactory<>("point"));
 
-
         TableColumn<Athlete, CheckBox> selectColumn = new TableColumn<Athlete, CheckBox>("Select");
         selectColumn.setCellValueFactory(
                 new Callback<TableColumn.CellDataFeatures<Athlete, CheckBox>, ObservableValue<CheckBox>>(){
@@ -153,12 +156,9 @@ public class Windows extends Application{
                         return new SimpleObjectProperty<CheckBox>(checkBox);
                     }
                 });
-
         columns.addAll(idColumn, nameColumn, typeColumn, pointColumn, selectColumn);
 
         table.setItems(AthleteInfoTab.getAthlete());
-
-
         return table;
     }
 
