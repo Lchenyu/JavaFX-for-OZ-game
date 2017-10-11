@@ -5,14 +5,22 @@ import java.util.ArrayList;
 import controller.Driver;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -20,7 +28,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import model.Cyclist;
-import model.Game;
 import model.Person;
 import model.Result;
 import model.Sprinter;
@@ -29,13 +36,13 @@ import model.Swimmer;
 
 public class Windows extends Application{
 
-	protected boolean swim = false, run = false, cycle = false;
-	protected  Driver start;
-	protected ArrayList<Person> tempList;
+	private boolean swim = false, run = false, cycle = false;
+	private  Driver start;
+	private ArrayList<Person> tempList;
     /*
      * same as Assignment 1's Ozlympic class as start game
      */
-	protected Driver getStart(){
+	private Driver getStart(){
     	 if (start == null) {
     		 start = new Driver();
          }
@@ -43,13 +50,17 @@ public class Windows extends Application{
     }
 
 
-    protected TabPane layout = new TabPane();
-    protected Tab tab1 = new Tab("Run Game");
-    protected Tab tab2 = new Tab("Game History");
-    protected Tab tab3 = new Tab("Athlete Information");
-    protected Tab tab4 = new Tab("Prediction");
+	private TabPane layout = new TabPane();
+    private Tab tab1 = new Tab("Run Game");
+    private Tab tab2 = new Tab("Game History");
+    private Tab tab3 = new Tab("Athlete Information");
+    private Tab tab4 = new Tab("Prediction");
 
-    protected BorderPane borderPane = new BorderPane();
+    private BorderPane borderPane = new BorderPane();
+
+    private boolean checkNum = false;
+    private ArrayList<Person> addedAthletes;
+    private ObservableList<Person> availableAthletes;
 
     public static void main(String[] args){
         launch();
@@ -67,8 +78,8 @@ public class Windows extends Application{
         primaryStage.show();
     }
 
-    protected TabPane getPane(){
 
+    protected TabPane getPane(){
          /*
          set TabPane's tab
           */
@@ -82,14 +93,12 @@ public class Windows extends Application{
          return layout;
     }
 
-
     private BorderPane getBorderPane(){
         /*
         contents for tab 1
          */
         borderPane.setLeft(getRadioPane());
         borderPane.setRight(getAvailableList());
-        //borderPane.setBottom(getBottomPane());
 
         return borderPane;
     }
@@ -117,6 +126,7 @@ public class Windows extends Application{
         	if(radio1.isSelected()){
         		run = false; cycle =false;
         		borderPane.setRight(getAvailableList());
+        		start.setGameType(1);
         	}
         });
         RadioButton radio2 = new RadioButton("Running");
@@ -125,6 +135,7 @@ public class Windows extends Application{
         	if(radio2.isSelected()){
         		swim = false; cycle =false;
         		borderPane.setRight(getAvailableList());
+        		start.setGameType(2);
         	}
         });
         RadioButton radio3 = new RadioButton("Cycling");
@@ -133,6 +144,7 @@ public class Windows extends Application{
         	if(radio3.isSelected()){
         		run = false; swim =false;
         		borderPane.setRight(getAvailableList());
+        		start.setGameType(3);
         	}
         });
 
@@ -152,7 +164,19 @@ public class Windows extends Application{
 
         Button startBtn = new Button("Start Game");
         startBtn.setOnAction(e ->{
+        	CheckAthleteNumber();
+        	if(checkNum){
 
+        		start.matchType();
+        		start.createGame();
+        		for(Person p : addedAthletes){
+        			start.addAthletesByManual(p.getId());
+        		}
+        		start.gameStart();
+        		borderPane.setBottom(getBottomPane());
+        	}else{
+        		Alarm.display();
+        	}
         });
 
         gridPane.add(vBox,0 , 0);
@@ -212,14 +236,17 @@ public class Windows extends Application{
                     	Person data = arg0.getValue();
                         CheckBox checkBox = new CheckBox();
                         checkBox.selectedProperty().setValue(data.getSelected());
-
+                        checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                            public void changed(ObservableValue<? extends Boolean> ov, Boolean old_val,
+                                    Boolean new_val) {
+                                data.setSelected(new_val);
+                                checkBox.setSelected(new_val);
+                                updateAvailableAthletes(data);
+                            }
+                        });
                         return new SimpleObjectProperty<CheckBox>(checkBox);
                     }
                 });
-
-
-
-
         columns.addAll(idColumn, nameColumn, pointColumn, selectColumn);
         table.setItems(getAvailableAthletes(getAthletesOnType()));
         return table;
@@ -231,7 +258,7 @@ public class Windows extends Application{
     	 * set available Athletes which depends on the game type into ObservableList
     	 * and always put superAthletes in the ObservableList
     	 */
-    	ObservableList<Person> availableAthletes = FXCollections.observableArrayList();
+    	availableAthletes = FXCollections.observableArrayList();
 
     	if(swim){
         	for(int i = 0; i < temp.size(); i++){
@@ -281,6 +308,12 @@ public class Windows extends Application{
     	return tempList;
     }
 
+    private void updateAvailableAthletes(Person dataIn){
+        int index = availableAthletes.indexOf(dataIn);
+        availableAthletes.set(index, dataIn);
+    }
+
+
 
     private GridPane getBottomPane(){
         /*
@@ -300,13 +333,22 @@ public class Windows extends Application{
         TableView<Result> gameTable = new TableView<>();
 
         TableColumn<Result, String> games = new TableColumn<>("ID");
+        games.setMinWidth(200);
         games.setCellValueFactory(new PropertyValueFactory<>("id"));
 
         TableColumn<Result, String> result = new TableColumn<>("Result");
+        result.setMinWidth(200);
         result.setCellValueFactory(new PropertyValueFactory<>("re"));
 
-        gameTable.setItems(getCurrentGame(start.getGames().get(start.getGames().size() -1).getResults()));
+
         gameTable.getColumns().addAll(games, result);
+        gameTable.setItems(getCurrentGame(start.getGames().get(start.getGames().size() -1).getResults()));
+
+
+
+
+        id.setText(start.getGames().get(start.getGames().size() - 1).getGameID());
+        reLabel.setText(start.getGames().get(start.getGames().size() - 1).getReferee());
 
         pane.add(gameIDLabel,0,0);
         pane.add(id, 1,0);
@@ -328,6 +370,27 @@ public class Windows extends Application{
 
     	return gameResult;
 
+    }
+
+    private void CheckAthleteNumber(){
+
+
+
+    	addedAthletes = new ArrayList();
+    	//System.out.print(addedAthletes.size()+"\n");
+
+    	for(int i = 0; i< availableAthletes.size(); i++){
+    	   	if(availableAthletes.get(i).getSelected()){
+        		addedAthletes.add(availableAthletes.get(i));
+        		//System.out.print(addedAthletes.size()+ "---------");
+        	}
+    	}
+
+    	if(addedAthletes.size() >= 4 && addedAthletes.size() <= 8){
+    		checkNum = true;
+    	}else{
+    		checkNum = false;
+    	}
     }
 
 
